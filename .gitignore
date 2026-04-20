@@ -1,0 +1,23 @@
+# Archivos temporales y auxiliares generados por LaTeX
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lol
+*.lot
+*.out
+*.synctex.gz
+*.toc
+*.idx
+*.ind
+*.ilg
+*.bcf
+*.run.xml
+
+# Archivos temporales del sistema operativo o editores
+.DS_Store
+*.swp
+*.bak

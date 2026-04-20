@@ -1,16 +1,25 @@
 \chapter{Análisis del problema}\label{cap:analisis}
 
 \section{Introducción}
-En este capítulo explicaremos...
+Este capítulo detalla los requisitos fundamentales que el sistema logístico debe satisfacer para considerarse operativo y resolver el problema propuesto.
 
 \section{Requisitos de información}
-Los requisitos de información son...
+El sistema requiere persistir y relacionar las siguientes entidades fundamentales:
+\begin{itemize}
+    \item \textbf{Almacenes (Nodos):} Identificación geográfica y capacidad total.
+    \item \textbf{Productos (Nodos):} Catálogo de artículos disponibles en la red.
+    \item \textbf{Conexiones Viales (Aristas):} Rutas físicas entre almacenes, cuantificadas por su distancia en kilómetros.
+    \item \textbf{Existencias (Aristas):} Cantidad disponible de un producto específico almacenado en una ubicación concreta.
+\end{itemize}
 
 \section{Requisitos funcionales}
-Los requisitos funcionales son...
-
-\section{Requisitos no funcionales}
-Los requisitos no funcionales son...
+Las principales funcionalidades exigidas al sistema son:
+\begin{itemize}
+    \item \textbf{Gestión de Red (CRUD):} Permitir el alta, baja y modificación de almacenes, productos y rutas viales.
+    \item \textbf{Cálculo de Rutas Óptimas:} Determinar el camino más corto entre dos ubicaciones basándose en la métrica de distancia.
+    \item \textbf{Control de Stock Vivo:} Gestionar inventarios con operaciones de entrada y salida actualizadas en tiempo real.
+    \item \textbf{Resiliencia Logística:} Capacidad de recalcular rutas de transporte automáticamente ante contingencias (ej. cierre temporal de vías).
+\end{itemize}
 
 \section{Conclusiones}
-En este capítulo concluimos que...
+La fuerte interconexión de estos requisitos apunta de forma evidente hacia la adopción de un modelo de datos orientado a grafos, donde las relaciones (las rutas y el stock) poseen tanta importancia técnica y valor de negocio como las propias entidades aisladas.

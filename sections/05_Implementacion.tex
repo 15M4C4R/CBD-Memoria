@@ -1,9 +1,25 @@
 \chapter{Implementación}\label{cap:implementacion}
 
 \section{Introducción}
-En este capítulo explicaremos...
+Este capítulo describe el proceso de construcción real del sistema, detallando el stack tecnológico seleccionado y las soluciones de ingeniería aplicadas para organizar el código y sortear los problemas de despliegue.
 
-\section {Herramientas}
+\section{Herramientas y Tecnologías}
+\begin{itemize}
+    \item \textbf{Base de Datos:} ArangoDB configurado para persistencia de grafos multimodelo.
+    \item \textbf{Backend:} Python 3.10 utilizando el controlador oficial \texttt{python-arango}.
+    \item \textbf{Frontend:} Streamlit, empleado para desarrollar una interfaz reactiva.
+    \item \textbf{Despliegue:} Orquestación de servicios mediante \texttt{docker-compose}, aislando la base de datos (\texttt{db}) de la aplicación (\texttt{app}).
+\end{itemize}
+
+\section{Arquitectura: Patrón Repositorio}
+A medida que el proyecto crecía, la clase gestora original corría el riesgo de convertirse en un antipatrón \textit{God Class} (una única clase abarcando toda la funcionalidad). Para refactorizarlo, apliqué el Patrón Repositorio dividiendo el sistema en módulos lógicos:
+\begin{enumerate}
+    \item \texttt{database.py}: Dedicado en exclusiva a la gestión de la conexión y la instanciación.
+    \item \texttt{crud.py}: Contiene clases aisladas (\texttt{CRUDAlmacenes}, \texttt{CRUDRutas}, etc.) que abstraen la lógica AQL de cada dominio.
+\end{enumerate}
+
+\section{Resolución de Conflictos Técnicos}
+Durante la integración de Docker, me enfrenté a un error de importación circular en Python (\texttt{ModuleNotFoundError}) provocado por una colisión de \textit{namespaces} al renombrar el directorio principal de la aplicación. Logré solucionarlo modificando el punto de entrada a \texttt{main.py} y, fundamentalmente, configurando la variable de entorno \texttt{PYTHONPATH=/app} dentro del contenedor, forzando al intérprete a resolver correctamente la jerarquía de directorios.
 
 \section{Conclusiones}
-En este capítulo concluimos que...
+La implementación resultante demuestra ser modular, mantenible y altamente portable gracias al esfuerzo puesto en la correcta contenedorización del entorno de ejecución.
