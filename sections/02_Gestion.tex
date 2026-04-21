@@ -3,12 +3,21 @@
 \section{Introducción}
 Breve introducción al capítulo
 
-\section{Objetivos}
+\section{ArangoDB}
+Es una base de datos NoSQL nativa multimodelo, lo que significa que permite trabajar con documentos, grafos y sistemas clave-valor utilizando un único motor central y un mismo lenguaje de consultas llamado AQL (ArangoDB Query Language).
 
-\section{Metodología}
+\section{Arquitectura Multimodelo}
+En el mundo de las bases de datos, normalmente estás atado a un solo formato: tablas (relacional), documentos tipo JSON (como MongoDB), o grafos (como Neo4j).
 
-\section{Planificación}
+La principal ventaja de la arquitectura multimodelo nativa de ArangoDB es que combina varios modelos en un mismo motor central, permitiendo acceder a ellos con el mismo lenguaje de consultas (AQL). Los tres modelos que soporta son:
+\begin{itemize}
+\item \textbf{Documentos:} Para guardar información jerárquica y flexible.
+\item \textbf{Grafos:} Para definir relaciones complejas y direcciones entre los datos.
+\item \textbf{Clave-Valor:} Para accesos de lectura ultrarrápidos mediante un identificador único.
+\end{itemize}
 
-\section{Presupuesto}
+\section{Modelado de Grafos y AQL}
+En una base de datos tradicional, buscar conexiones requiere cruzar tablas mediante operaciones costosas. En un modelo de grafos, las relaciones son importantes y trazarlas es directo e inmediato.
+AQL (ArangoDB Query Language) es el lenguaje que permite recorrer esta red de datos. .
 
-\section{Conclusiones}
+\section{Integración}
