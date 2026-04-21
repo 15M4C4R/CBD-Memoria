@@ -1,25 +1,66 @@
 \chapter{Implementación}\label{cap:implementacion}
 
 \section{Introducción}
-Este capítulo describe el proceso de construcción real del sistema, detallando el stack tecnológico seleccionado y las soluciones de ingeniería aplicadas para organizar el código y sortear los problemas de despliegue.
+En este capítulo detallamos la construcción técnica del sistema. Hemos diseñado una arquitectura donde el backend garantiza la integridad de los grafos y el frontend ofrece una ventana intuitiva para la gestión operativa. Todo el sistema reside en un ecosistema contenedorizado que asegura su portabilidad.
 
-\section{Herramientas y Tecnologías}
+\section{Desarrollo del Backend: Persistencia y Lógica de Datos}
+El backend se ha estructurado siguiendo un patrón de separación de responsabilidades para facilitar el mantenimiento y la escalabilidad de la red logística.
+
+\subsection{Capa de Conexión (\texttt{app/database.py})}
+Este archivo centraliza la configuración de ArangoDB. La clase \texttt{GestorLogisticaDB} se encarga de instanciar el cliente y asegurar que las colecciones necesarias existan. Un aspecto clave es la inyección de la base de datos en los módulos CRUD:
+
+\begin{lstlisting}[language=Python, caption={Inyección de dependencias en database.py}]
+def conectar(self):
+    self.db = self.client.db(self.db_name, username=self.username)
+    # Vinculamos los repositorios a la instancia de la BD
+    self.almacenes = CRUDAlmacenes(self.db)
+    self.rutas = CRUDRutas(self.db)
+\end{lstlisting}
+
+\subsection{Lógica de Negocio y Grafos (\texttt{app/crud.py})}
+En este módulo hemos implementado la inteligencia del sistema. En lugar de consultas planas, hemos desarrollado métodos que explotan las capacidades de AQL. Por ejemplo, la resolución de rutas óptimas se abstrae en una función que gestiona los parámetros de entrada y la salida del motor de grafos:
+
+\begin{lstlisting}[language=Python, caption={Firma de la funcion de calculo de rutas en crud.py}]
+def leer_optima(self, origen, destino):
+    # Consulta SHORTEST_PATH restringida a la coleccion 'Rutas'
+    query = "FOR v, e IN ANY SHORTEST_PATH @o TO @d Rutas ..."
+    bind_vars = {'o': f'Almacenes/{origen}', 'd': f'Almacenes/{destino}'}
+    return self._ejecutar(query, bind_vars)
+\end{lstlisting}
+
+\section{Desarrollo del Frontend: Interfaz y Visualización}
+La interfaz de usuario, desarrollada en \texttt{app/main.py}, ha sido diseñada para democratizar el acceso a los datos del grafo, eliminando la necesidad de que el operario conozca el lenguaje AQL.
+
+\subsection{Arquitectura del Dashboard (\texttt{app/main.py})}
+El frontend actúa como el orquestador de la experiencia de usuario. Hemos implementado una gestión de estado eficiente para asegurar que la conexión a la base de datos sea persistente y no se degrade con las interacciones del usuario:
+
+\begin{lstlisting}[language=Python, caption={Gestión de recursos en main.py}]
+@st.cache_resource
+def inicializar_sistema():
+    gestor = GestorLogisticaDB()
+    gestor.conectar()
+    return gestor
+\end{lstlisting}
+
+\subsection{Componentes de Administración e Inventario}
+El dashboard se divide en módulos funcionales integrados en el archivo principal:
 \begin{itemize}
-    \item \textbf{Base de Datos:} ArangoDB configurado para persistencia de grafos multimodelo.
-    \item \textbf{Backend:} Python 3.10 utilizando el controlador oficial \texttt{python-arango}.
-    \item \textbf{Frontend:} Streamlit, empleado para desarrollar una interfaz reactiva.
-    \item \textbf{Despliegue:} Orquestación de servicios mediante \texttt{docker-compose}, aislando la base de datos (\texttt{db}) de la aplicación (\texttt{app}).
+    \item \textbf{Panel Lateral:} Gestiona la navegación y el estado de la conexión.
+    \item \textbf{Módulo de Red:} Permite la edición dinámica de la topología (añadir almacenes o cerrar rutas) llamando a los métodos de \texttt{crud.py}.
+    \item \textbf{Visualización Activa:} Se encarga de transformar los documentos JSON de ArangoDB en elementos visuales (mapas y tablas) para el seguimiento del stock.
 \end{itemize}
 
-\section{Arquitectura: Patrón Repositorio}
-A medida que el proyecto crecía, la clase gestora original corría el riesgo de convertirse en un antipatrón \textit{God Class} (una única clase abarcando toda la funcionalidad). Para refactorizarlo, apliqué el Patrón Repositorio dividiendo el sistema en módulos lógicos:
-\begin{enumerate}
-    \item \texttt{database.py}: Dedicado en exclusiva a la gestión de la conexión y la instanciación.
-    \item \texttt{crud.py}: Contiene clases aisladas (\texttt{CRUDAlmacenes}, \texttt{CRUDRutas}, etc.) que abstraen la lógica AQL de cada dominio.
-\end{enumerate}
+\section{Infraestructura y Despliegue (\texttt{docker-compose.yml})}
+Para unificar el trabajo de ambos, hemos orquestado el despliegue mediante contenedores. El archivo \texttt{docker-compose.yml} garantiza que la base de datos y la aplicación convivan en una red aislada, compartiendo variables de entorno críticas:
 
-\section{Resolución de Conflictos Técnicos}
-Durante la integración de Docker, me enfrenté a un error de importación circular en Python (\texttt{ModuleNotFoundError}) provocado por una colisión de \textit{namespaces} al renombrar el directorio principal de la aplicación. Logré solucionarlo modificando el punto de entrada a \texttt{main.py} y, fundamentalmente, configurando la variable de entorno \texttt{PYTHONPATH=/app} dentro del contenedor, forzando al intérprete a resolver correctamente la jerarquía de directorios.
+\begin{lstlisting}[language=YAML, caption={Orquestación de servicios en docker-compose.yml}]
+services:
+  db:
+    image: arangodb:latest
+  app:
+    build: .
+    environment:
+      - PYTHONPATH=/app
+    command: streamlit run app/main.py
+\end{lstlisting}
 
-\section{Conclusiones}
-La implementación resultante demuestra ser modular, mantenible y altamente portable gracias al esfuerzo puesto en la correcta contenedorización del entorno de ejecución.

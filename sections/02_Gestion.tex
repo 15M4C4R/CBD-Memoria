@@ -1,23 +1,35 @@
-\chapter{Estudio previo}\label{cap:planificación}
+\chapter{Estudio previo}\label{cap:estudio_previo}
 
 \section{Introducción}
-Breve introducción al capítulo
+En este capítulo se analiza y justifica el stack tecnológico seleccionado para el desarrollo del sistema. El núcleo del proyecto es la gestión de una red logística, un problema que por su naturaleza requiere un tratamiento avanzado de las relaciones entre datos. Por ello, el estudio se centra en las ventajas de la tecnología multimodelo y el procesamiento de grafos frente a las soluciones relacionales convencionales.
 
-\section{ArangoDB}
-Es una base de datos NoSQL nativa multimodelo, lo que significa que permite trabajar con documentos, grafos y sistemas clave-valor utilizando un único motor central y un mismo lenguaje de consultas llamado AQL (ArangoDB Query Language).
+\section{Justificación Tecnológica: ArangoDB}
+ArangoDB es una base de datos NoSQL nativa multimodelo. Esta característica es el pilar técnico del proyecto, ya que nos permite trabajar con documentos, grafos y sistemas clave-valor utilizando un único motor central y un mismo lenguaje de consultas: \textbf{AQL (ArangoDB Query Language)}.
 
-\section{Arquitectura Multimodelo}
-En el mundo de las bases de datos, normalmente estás atado a un solo formato: tablas (relacional), documentos tipo JSON (como MongoDB), o grafos (como Neo4j).
-
-La principal ventaja de la arquitectura multimodelo nativa de ArangoDB es que combina varios modelos en un mismo motor central, permitiendo acceder a ellos con el mismo lenguaje de consultas (AQL). Los tres modelos que soporta son:
+\subsection{Arquitectura Multimodelo Nativa}
+En el desarrollo de aplicaciones complejas, habitualmente se cae en la "persistencia políglota", obligando a integrar distintos motores (como MongoDB para documentos y Neo4j para grafos). La ventaja de ArangoDB es que combina estos modelos en un solo núcleo:
 \begin{itemize}
-\item \textbf{Documentos:} Para guardar información jerárquica y flexible.
-\item \textbf{Grafos:} Para definir relaciones complejas y direcciones entre los datos.
-\item \textbf{Clave-Valor:} Para accesos de lectura ultrarrápidos mediante un identificador único.
+    \item \textbf{Modelo de Documentos:} Lo utilizamos para almacenar la información detallada y jerárquica de los almacenes y los productos en formato JSON.
+    \item \textbf{Modelo de Grafos:} Es el corazón de la aplicación. Nos permite definir relaciones de conectividad entre ciudades y de ubicación de inventario mediante aristas (\textit{edges}).
+    \item \textbf{Eficiencia operativa:} Al tener un solo motor, se eliminan los problemas de consistencia entre diferentes bases de datos y se simplifica drásticamente el despliegue mediante contenedores.
 \end{itemize}
 
-\section{Modelado de Grafos y AQL}
-En una base de datos tradicional, buscar conexiones requiere cruzar tablas mediante operaciones costosas. En un modelo de grafos, las relaciones son importantes y trazarlas es directo e inmediato.
-AQL (ArangoDB Query Language) es el lenguaje que permite recorrer esta red de datos. .
+\section{Modelado de Grafos frente al Modelo Relacional}
+La decisión de no utilizar una base de datos SQL tradicional se basa en la eficiencia en el recorrido de redes. En un modelo relacional, encontrar una ruta entre dos almacenes implicaría realizar múltiples operaciones de unión (\textit{JOINs}) o recursividad compleja (CTEs), cuyo rendimiento decae exponencialmente con la profundidad de la red.
 
-\section{Integración}
+En nuestro modelo de grafos, las relaciones son registros físicos que contienen punteros a los documentos que conectan. Esto permite que el trazado de rutas sea una operación directa e inmediata, independientemente del tamaño total del conjunto de datos.
+
+\section{Lenguaje de Consultas AQL}
+AQL es un lenguaje declarativo que permite realizar operaciones complejas sobre los tres modelos de datos. Para este proyecto, su potencia radica en las funciones nativas de grafos:
+\begin{itemize}
+    \item \textbf{Shortest Path:} Permite calcular la ruta mínima entre dos nodos basándose en pesos (distancia en km).
+    \item \textbf{Traversals:} Facilita el recorrido de la red para, por ejemplo, listar todos los productos contenidos en una rama específica de la logística.
+\end{itemize}
+
+\section{Integración del Stack Tecnológico}
+Para que el motor de base de datos sea funcional, lo hemos integrado en un ecosistema que garantiza la interactividad y la facilidad de uso:
+\begin{itemize}
+    \item \textbf{Backend (Python):} Actúa como puente entre la interfaz y la base de datos, implementando la lógica de negocio y la validación de datos.
+    \item \textbf{Frontend (Streamlit):} Proporciona un panel de control interactivo donde los cambios en la base de datos se visualizan de forma inmediata a través de mapas y tablas dinámicas.
+    \item \textbf{Docker:} Asegura que todo este entorno sea reproducible, configurando la red interna para que la aplicación y la base de datos se comuniquen de forma transparente.
+\end{itemize}

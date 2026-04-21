@@ -1,44 +1,48 @@
 \chapter{Diseño de la solución}\label{cap:diseño}
 
 \section{Introducción}
-La base de datos se ha estructurado como un grafo multimodelo denominado \texttt{RedLogistica}. A diferencia de las bases de datos relacionales estándar, este modelo me permite recorrer conexiones logísticas con una eficiencia de orden de complejidad mucho menor.
+En este capítulo describimos la arquitectura lógica del sistema, centrándonos en cómo hemos aprovechado la flexibilidad del modelo de grafos para representar una red logística compleja. El diseño se fundamenta en la capacidad de ArangoDB para tratar las relaciones (rutas y stock) como entidades con identidad propia.
 
-\section{Modelo de Datos y Diagrama}
-La organización lógica de las colecciones diseñadas en ArangoDB es la siguiente:
+\section{Arquitectura del Grafo: RedLogistica}
+Hemos diseñado un grafo denominado \texttt{RedLogistica} que unifica la infraestructura física de transporte con el inventario de mercancías. La organización se divide en dos tipos de colecciones:
+
+\subsection{Colecciones de Vértices (Nodos)}
 \begin{itemize}
-    \item \textbf{Vértices (Documentos):} \texttt{Almacenes} y \texttt{Productos}.
-    \item \textbf{Aristas (Edges):} \texttt{Rutas} (conecta almacenes entre sí, incluyendo el atributo \texttt{distancia\_km}) y \texttt{Stock\_en} (conecta productos con almacenes, incluyendo el atributo de \texttt{cantidad}).
+    \item \textbf{Almacenes:} Representan los centros logísticos. Cada nodo contiene documentos JSON con atributos como la ciudad, el nombre descriptivo y la capacidad máxima de almacenaje.
+    \item \textbf{Productos:} Constituyen el catálogo maestro. Almacenan el identificador único (SKU), nombre y categoría del producto.
 \end{itemize}
 
-En la Figura \ref{fig:grafo_db} se ilustra la topología de la base de datos mediante un diagrama conceptual.
+\subsection{Colecciones de Aristas (Edges)}
+\begin{itemize}
+    \item \textbf{Rutas:} Definen la conectividad vial entre almacenes. Son aristas dirigidas o bidireccionales que portan el atributo \texttt{distancia\_km}, crítico para los cálculos de optimización.
+    \item \textbf{Stock\_en:} Representan la presencia de un producto en un almacén. Almacenan el atributo \texttt{cantidad}, permitiendo una relación dinámica de muchos a muchos entre productos y ubicaciones.
+\end{itemize}
+
+\section{Diagrama del Modelo de Datos}
+Para facilitar la comprensión de la topología de la red, hemos elaborado el siguiente diagrama mediante el paquete \textit{TikZ}, representando la jerarquía y las conexiones del grafo:
 
 \begin{figure}[htp]
     \centering
     \begin{tikzpicture}[node distance=4cm, auto, thick, >=stealth]
-        % Definición de estilos
+        % Estilos
         \tikzstyle{nodoAlmacen} = [draw, rectangle, rounded corners, fill=blue!10, minimum width=3cm, minimum height=1.2cm, text centered]
         \tikzstyle{nodoProducto} = [draw, circle, fill=orange!10, minimum size=2.5cm, text centered]
 
-        % Nodos Almacenes
-        \node[nodoAlmacen] (almacenMadrid) {Almacén Madrid};
-        \node[nodoAlmacen, right of=almacenMadrid, xshift=2cm] (almacenBarna) {Almacén Barcelona};
-        
-        % Nodos Productos
-        \node[nodoProducto, below of=almacenMadrid, yshift=-1cm] (prodPortatil) {Portátil XPS};
-        \node[nodoProducto, below of=almacenBarna, yshift=-1cm] (prodMonitor) {Monitor 4K};
+        % Nodos
+        \node[nodoAlmacen] (madrid) {Almacén Madrid};
+        \node[nodoAlmacen, right of=madrid, xshift=2cm] (barna) {Almacén Barcelona};
+        \node[nodoProducto, below of=madrid, yshift=-1cm] (p1) {Producto A};
+        \node[nodoProducto, below of=barna, yshift=-1cm] (p2) {Producto B};
 
-        % Aristas
-        \draw[<->] (almacenMadrid) -- node[above] {\textbf{Ruta} (distancia\_km)} (almacenBarna);
-        \draw[->] (prodPortatil) -- node[left] {\textbf{Stock\_en} (cantidad)} (almacenMadrid);
-        \draw[->] (prodMonitor) -- node[right] {\textbf{Stock\_en} (cantidad)} (almacenBarna);
-        \draw[->] (prodPortatil) -- node[above, sloped] {\textbf{Stock\_en} (cantidad)} (almacenBarna);
+        % Conexiones
+        \draw[<->] (madrid) -- node[above] {\textbf{Ruta} (distancia)} (barna);
+        \draw[->, dashed] (p1) -- node[left] {\textbf{Stock\_en}} (madrid);
+        \draw[->, dashed] (p2) -- node[right] {\textbf{Stock\_en}} (barna);
+        \draw[->, dashed] (p1) -- node[above, sloped] {\textbf{Stock\_en}} (barna);
     \end{tikzpicture}
-    \caption{Diagrama topológico del grafo \texttt{RedLogistica} y sus relaciones.}
-    \label{fig:grafo_db}
+    \caption{Representación lógica del grafo multimodelo \texttt{RedLogistica}.}
+    \label{fig:diagrama_grafo}
 \end{figure}
 
-\section{Decisiones de Diseño: Integridad en Grafos}
-Una decisión arquitectónica crítica a la que tuve que enfrentarme fue la gestión de la integridad referencial. Dado que ArangoDB no impone restricciones rígidas de borrado en cascada de la misma forma que un motor SQL, tuve que implementar lógica AQL manual transaccional. Esto garantiza que, si se elimina un almacén del sistema por necesidades de negocio, se supriman simultáneamente todas sus rutas adyacentes y registros de stock vinculados, previniendo la existencia de "aristas huérfanas" que pudieran corromper consultas futuras.
-
-\section{Conclusiones}
-El diseño propuesto explota las ventajas de los grafos nativos para resolver un problema de red complejo, garantizando al mismo tiempo la consistencia de los datos mediante una capa lógica de control implementada directamente en el código de backend.
+\section{Estrategia de Integridad Referencial}
+Dada la naturaleza de las bases de datos NoSQL, hemos tomado la decisión de diseño de gestionar la integridad referencial desde la lógica de la aplicación. Para evitar ``aristas huérfanas", implementamos funciones en AQL que ejecutan borrados en cascada: al eliminar un nodo de \texttt{Almacenes}, el sistema identifica y elimina automáticamente todas las \texttt{Rutas} y registros de \texttt{Stock\_en} asociados.

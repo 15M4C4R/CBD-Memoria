@@ -1,25 +1,33 @@
 \chapter{Análisis del problema}\label{cap:analisis}
 
 \section{Introducción}
-Este capítulo detalla los requisitos fundamentales que el sistema logístico debe satisfacer para considerarse operativo y resolver el problema propuesto.
+En este capítulo detallamos los requisitos fundamentales que el sistema logístico debe satisfacer. El análisis se ha abordado desde una perspectiva integral, considerando tanto la robustez necesaria en la persistencia y el cálculo de datos en el backend  como la agilidad requerida en la interfaz de usuario para una gestión operativa real.
 
 \section{Requisitos de información}
-El sistema requiere persistir y relacionar las siguientes entidades fundamentales:
+Para modelar fielmente la red logística, el sistema debe ser capaz de persistir y relacionar entidades que poseen atributos tanto técnicos como descriptivos para su visualización:
+
 \begin{itemize}
-    \item \textbf{Almacenes (Nodos):} Identificación geográfica y capacidad total.
-    \item \textbf{Productos (Nodos):} Catálogo de artículos disponibles en la red.
-    \item \textbf{Conexiones Viales (Aristas):} Rutas físicas entre almacenes, cuantificadas por su distancia en kilómetros.
-    \item \textbf{Existencias (Aristas):} Cantidad disponible de un producto específico almacenado en una ubicación concreta.
+    \item \textbf{Almacenes (Nodos):} Además de su identificación y capacidad, deben incluir metadatos de localización (como ciudad o coordenadas) que permitan su representación en el mapa interactivo.
+    \item \textbf{Productos (Nodos):} Deben categorizarse mediante identificadores únicos (SKU), nombres descriptivos y categorías para facilitar su filtrado en el inventario.
+    \item \textbf{Conexiones Viales (Aristas):} Deben definir la topología de la red, vinculando almacenes mediante el atributo de distancia, esencial para los algoritmos de optimización.
+    \item \textbf{Existencias (Aristas):} Representan la relación dinámica entre productos y almacenes, manteniendo un conteo preciso de unidades disponibles en cada punto de la red.
 \end{itemize}
 
 \section{Requisitos funcionales}
-Las principales funcionalidades exigidas al sistema son:
+Hemos definido las capacidades del sistema centrándonos en la utilidad para el administrador final, equilibrando la potencia de cálculo con la facilidad de uso:
+
 \begin{itemize}
-    \item \textbf{Gestión de Red (CRUD):} Permitir el alta, baja y modificación de almacenes, productos y rutas viales.
-    \item \textbf{Cálculo de Rutas Óptimas:} Determinar el camino más corto entre dos ubicaciones basándose en la métrica de distancia.
-    \item \textbf{Control de Stock Vivo:} Gestionar inventarios con operaciones de entrada y salida actualizadas en tiempo real.
-    \item \textbf{Resiliencia Logística:} Capacidad de recalcular rutas de transporte automáticamente ante contingencias (ej. cierre temporal de vías).
+    \item \textbf{Gestión de Red Interactiva:} El sistema debe permitir realizar operaciones CRUD sobre almacenes, productos y rutas. Estas acciones deben reflejarse inmediatamente tanto en la base de datos como en la representación visual de la red.
+    \item \textbf{Cálculo de Rutas Críticas:} Implementar una lógica capaz de determinar el camino más corto entre dos puntos, garantizando que el algoritmo recorra exclusivamente las rutas de transporte válidas.
+    \item \textbf{Dashboard de Inventario:} Proporcionar una visión clara del stock vivo, permitiendo realizar ajustes de unidades y visualizar la distribución de productos a través de la red.
+    \item \textbf{Visualización Dinámica de la Red:} La interfaz debe generar un grafo interactivo que ayude al usuario a comprender la topología de la red logística de un solo vistazo.
+    \item \textbf{Resiliencia ante Contingencias:} Capacidad de recalcular rutas de forma automática si una conexión queda inhabilitada, asegurando la continuidad de la cadena de suministro.
 \end{itemize}
 
-\section{Conclusiones}
-La fuerte interconexión de estos requisitos apunta de forma evidente hacia la adopción de un modelo de datos orientado a grafos, donde las relaciones (las rutas y el stock) poseen tanta importancia técnica y valor de negocio como las propias entidades aisladas.
+\section{Requisitos no funcionales}
+Para asegurar la calidad técnica y la facilidad de evaluación del proyecto, hemos establecido los siguientes criterios:
+\begin{itemize}
+    \item \textbf{Portabilidad:} El sistema debe ser agnóstico al entorno de ejecución, garantizando su funcionamiento inmediato mediante el uso de contenedores.
+    \item \textbf{Rendimiento en Relaciones:} La arquitectura debe permitir realizar consultas de vecindad y caminos cortos sin la penalización de rendimiento propia de los sistemas relacionales convencionales.
+    \item \textbf{Persistencia y Consistencia:} Se debe asegurar que las operaciones sobre el grafo mantengan la integridad de la red, evitando nodos o aristas huérfanas tras una eliminación.
+\end{itemize}

@@ -1,5 +1,33 @@
 \chapter{Introducción}\label{cap:introduccion}
 
-El propósito de este trabajo es resolver la complejidad inherente a la logística de distribución mediante el uso de bases de datos de grafos. En lugar de utilizar modelos relacionales tradicionales que sufren con consultas recursivas pesadas al intentar modelar redes, he optado por ArangoDB para modelar almacenes como nodos y rutas como aristas, permitiendo una adaptabilidad inmediata ante cambios en el entorno.
+\section{Contexto y Motivación}
+En el marco de la asignatura de Complementos de Bases de Datos, este proyecto nace con el objetivo de abordar uno de los retos que se presentan en la ingeniería del software: la gestión eficiente de redes logísticas. La distribución de mercancías no solo requiere el almacenamiento de datos estáticos, sino el procesamiento ágil de relaciones complejas entre almacenes, rutas y existencias.
 
-La metodología seguida ha sido iterativa: partiendo de un diseño de esquema básico, progresé hasta lograr una arquitectura modular robusta, enfrentándome a retos técnicos tanto en la lógica de resolución de rutas óptimas mediante AQL como en la orquestación del despliegue en contenedores Docker, los cuales se detallan en los posteriores capítulos de implementación.
+Tradicionalmente, este problema se ha abordado mediante modelos relacionales. Sin embargo, hemos identificado que el uso de grafos ofrece una ventaja competitiva superior para modelar la realidad física de una red de transporte. Al tratar los almacenes como nodos y las carreteras como aristas, nuestro sistema permite una adaptabilidad inmediata ante cambios en el entorno, facilitando cálculos que en sistemas tabulares resultarían computacionalmente costosos.
+
+\section{Definición del Problema}
+El sistema diseñado debe dar solución a una red logística integral compuesta por almacenes distribuidos geográficamente y un catálogo maestro de productos. El desafío planteado no se limita únicamente a la persistencia de la información, sino que abarca tres pilares fundamentales:
+\begin{itemize}
+    \item \textbf{Gestión de Conectividad:} El sistema debe modelar rutas físicas con distancias variables y ser capaz de calcular el camino más corto de forma dinámica.
+    \item \textbf{Control de Inventario Cruzado:} Es necesario vincular productos con múltiples ubicaciones, permitiendo operaciones de entrada y salida de stock en tiempo real.
+    \item \textbf{Interactividad y Administración:} Para que la solución sea funcional, debe presentar una interfaz intuitiva que permita a los administradores visualizar la red, modificar su topología y gestionar el stock sin necesidad de conocimientos técnicos en lenguajes de consulta.
+\end{itemize}
+
+\section{Objetivos del Proyecto}
+El propósito de este trabajo es el diseño, implementación y despliegue de una plataforma de gestión logística inteligente. Para alcanzar esta meta, nos hemos fijado los siguientes objetivos estratégicos:
+\begin{enumerate}
+    \item \textbf{Modelado de Datos Avanzado:} Diseñar un grafo multimodelo en ArangoDB que represente fielmente la infraestructura logística.
+    \item \textbf{Arquitectura Robusta:} Implementar un backend modular basado en el Patrón Repositorio que asegure la escalabilidad y mantenibilidad del código.
+    \item \textbf{Visualización Dinámica:} Desarrollar un dashboard interactivo utilizando Streamlit y bibliotecas de visualización de redes (Vis.js) para ofrecer una experiencia de usuario clara y profesional.
+    \item \textbf{Despliegue Unificado:} Orquestar todo el ecosistema mediante contenedores Docker para garantizar la portabilidad absoluta del sistema.
+\end{enumerate}
+
+\section{Metodología y Desafíos Técnicos}
+El desarrollo se ha llevado a cabo mediante una metodología iterativa y colaborativa, permitiendo que la lógica de negocio del backend y la interfaz del frontend evolucionen de forma sincronizada. A lo largo del proceso, hemos superado retos técnicos significativos:
+\begin{itemize}
+    \item \textbf{Integridad en Grafos:} La implementación de borrados en cascada manuales mediante consultas AQL para evitar inconsistencias en la base de datos.
+    \item \textbf{Sincronización de Servicios:} La configuración de una red interna en Docker que permita una comunicación fluida entre el servidor de base de datos y la aplicación.
+    \item \textbf{Visualización de Datos:} La traducción de estructuras de grafos complejas a mapas interactivos comprensibles para el usuario final.
+\end{itemize}
+
+Con esta base, el presente documento detalla en los siguientes capítulos el análisis, diseño y validación de una solución que integra lo mejor de las bases de datos de grafos con las tecnologías web modernas.
