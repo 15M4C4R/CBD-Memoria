@@ -7,10 +7,10 @@ En este capítulo se analiza y justifica el stack tecnológico seleccionado para
 ArangoDB es una base de datos NoSQL nativa multimodelo. Esta característica es el pilar técnico del proyecto, ya que nos permite trabajar con documentos, grafos y sistemas clave-valor utilizando un único motor central y un mismo lenguaje de consultas: \textbf{AQL (ArangoDB Query Language)}.
 
 \subsection{Arquitectura Multimodelo Nativa}
-En el desarrollo de aplicaciones complejas, habitualmente se cae en la "persistencia políglota", obligando a integrar distintos motores (como MongoDB para documentos y Neo4j para grafos). La ventaja de ArangoDB es que combina estos modelos en un solo núcleo:
+En el desarrollo de aplicaciones complejas, habitualmente es necesario integrar distintos motores (como MongoDB para documentos y Neo4j para grafos). La ventaja de ArangoDB es que combina estos modelos en un solo núcleo:
 \begin{itemize}
     \item \textbf{Modelo de Documentos:} Lo utilizamos para almacenar la información detallada y jerárquica de los almacenes y los productos en formato JSON.
-    \item \textbf{Modelo de Grafos:} Es el corazón de la aplicación. Nos permite definir relaciones de conectividad entre ciudades y de ubicación de inventario mediante aristas (\textit{edges}).
+    \item \textbf{Modelo de Grafos:} Es el corazón de la aplicación. Nos permite definir relaciones de conectividad entre ciudades y de ubicación de inventario mediante aristas.
     \item \textbf{Eficiencia operativa:} Al tener un solo motor, se eliminan los problemas de consistencia entre diferentes bases de datos y se simplifica drásticamente el despliegue mediante contenedores.
 \end{itemize}
 
