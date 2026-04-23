@@ -1,66 +1,119 @@
 \chapter{Implementación}\label{cap:implementacion}
 
 \section{Introducción}
-En este capítulo detallamos la construcción técnica del sistema. Hemos diseñado una arquitectura donde el backend garantiza la integridad de los grafos y el frontend ofrece una ventana intuitiva para la gestión operativa. Todo el sistema reside en un ecosistema contenedorizado que asegura su portabilidad.
+En este capítulo detallamos la construcción técnica del sistema. Hemos diseñado una arquitectura donde el backend garantiza la integridad de los grafos y el frontend ofrece una ventana intuitiva para la gestión operativa. Para asegurar un código escalable y mantenible, la lógica se ha estructurado siguiendo el Patrón Repositorio, separando estrictamente la capa de conexión, los módulos de persistencia (CRUD) y las vistas de usuario. Todo el sistema reside en un ecosistema contenedorizado que asegura su portabilidad.
 
 \section{Desarrollo del Backend: Persistencia y Lógica de Datos}
-El backend se ha estructurado siguiendo un patrón de separación de responsabilidades para facilitar el mantenimiento y la escalabilidad de la red logística.
+El backend constituye el núcleo de inteligencia del sistema, encargado de traducir las reglas de negocio logísticas en operaciones eficientes sobre el motor ArangoDB.
 
 \subsection{Capa de Conexión (\texttt{app/database.py})}
-Este archivo centraliza la configuración de ArangoDB. La clase \texttt{GestorLogisticaDB} se encarga de instanciar el cliente y asegurar que las colecciones necesarias existan. Un aspecto clave es la inyección de la base de datos en los módulos CRUD:
+La persistencia se centraliza en la clase \texttt{GestorLogisticaDB}, que actúa como punto de entrada único a la base de datos. Esta clase no solo instancia el cliente ArangoDB, sino que inicializa de forma segura las credenciales (usuario, contraseña y URL del host) mediante variables de entorno cargadas desde un archivo \texttt{.env}. 
+
+Un aspecto clave es el uso de la inyección de dependencias: al llamar al método \texttt{conectar()}, la instancia activa de la base de datos se vincula a cada uno de los repositorios especializados (\texttt{almacenes}, \texttt{productos}, \texttt{rutas} y \texttt{stock}). 
 
 \begin{lstlisting}[language=Python, caption={Inyección de dependencias en database.py}]
 def conectar(self):
-    self.db = self.client.db(self.db_name, username=self.username)
-    # Vinculamos los repositorios a la instancia de la BD
+    """Abre la conexión a la base de datos especifica y enlaza las clases CRUD."""
+    self.db = self.client.db(self.db_name, username=self.username, password=self.password)
+    
+    # Inyeccion de dependencias (Repository Pattern)
     self.almacenes = CRUDAlmacenes(self.db)
     self.rutas = CRUDRutas(self.db)
+    self.productos = CRUDProductos(self.db)
+    self.stock = CRUDStock(self.db)
 \end{lstlisting}
 
-\subsection{Lógica de Negocio y Grafos (\texttt{app/crud.py})}
-En este módulo hemos implementado la inteligencia del sistema. En lugar de consultas planas, hemos desarrollado métodos que explotan las capacidades de AQL. Por ejemplo, la resolución de rutas óptimas se abstrae en una función que gestiona los parámetros de entrada y la salida del motor de grafos:
+\subsection{Inicialización Automatizada (\texttt{data/setup\_data.py})}
+Para inicializar la base de datos se manera segura, se ha desarrollado el script \texttt{setup\_data.py}. Dado que en entornos de red aislados (como Docker) el motor de base de datos puede tardar más en arrancar que la aplicación, este script implementa un mecanismo de resiliencia con reintentos automáticos. Una vez establecida la conexión, ejecuta los métodos \texttt{inicializar\_base\_datos()} y \texttt{cargar\_datos\_prueba()}, creando las colecciones de vértices y aristas y poblando el grafo \texttt{RedLogistica} con una infraestructura inicial de cinco ciudades y un catálogo maestro de productos.
 
-\begin{lstlisting}[language=Python, caption={Firma de la funcion de calculo de rutas en crud.py}]
+\subsection{Lógica de Negocio y Grafos (\texttt{app/crud.py})}
+En este módulo se explotan las capacidades del lenguaje AQL (\textit{ArangoDB Query Language}) para resolver problemas complejos de redes que en bases de datos relacionales serían computacionalmente costosos.
+
+\begin{itemize}
+    \item \textbf{Gestión de Integridad en Cascada:} En bases de datos NoSQL de grafos, eliminar un nodo puede dejar aristas huérfanas. El método \texttt{eliminar} de \texttt{CRUDAlmacenes} resuelve esto mediante una consulta AQL transaccional que identifica y borra primero todas las \texttt{Rutas} y registros de \texttt{Stock\_en} asociados al ID del almacén antes de eliminar el nodo físico.
+    
+    \item \textbf{Resolución de Caminos Mínimos:} La función \texttt{leer\_optima} encapsula el algoritmo de Dijkstra nativo de ArangoDB. Se ha configurado explícitamente el parámetro \texttt{weightAttribute: 'distancia\_km'} para asegurar que el cálculo se base en la longitud física de las carreteras y no simplemente en el número de saltos entre nodos.
+    
+    \item \textbf{Operaciones Atómicas de Stock (UPSERT):} La gestión del inventario utiliza una sentencia \texttt{UPSERT} en AQL. Esto permite que si la relación entre un producto y un almacén no existe, se cree (INSERT), y si ya existe, se actualice la cantidad (UPDATE) de forma atómica. Además, se ha integrado lógica condicional para asegurar que el stock nunca sea inferior a cero.
+\end{itemize}
+
+\begin{lstlisting}[language=Python, caption={Firma de la función de cálculo de rutas en crud.py}]
 def leer_optima(self, origen, destino):
-    # Consulta SHORTEST_PATH restringida a la coleccion 'Rutas'
     query = "FOR v, e IN ANY SHORTEST_PATH @o TO @d Rutas ..."
-    bind_vars = {'o': f'Almacenes/{origen}', 'd': f'Almacenes/{destino}'}
+    bind_vars = {'o': f'Almacenes/{origen.lower()}', 'd': f'Almacenes/{destino.lower()}'}
     return self._ejecutar(query, bind_vars)
 \end{lstlisting}
 
 \section{Desarrollo del Frontend: Interfaz y Visualización}
-La interfaz de usuario, desarrollada en \texttt{app/main.py}, ha sido diseñada para democratizar el acceso a los datos del grafo, eliminando la necesidad de que el operario conozca el lenguaje AQL.
+La interfaz de usuario, centralizada en \texttt{app/main.py}, ha sido diseñada bajo un paradigma de desarrollo reactivo utilizando el framework \textbf{Streamlit}. El objetivo principal es abstraer la complejidad de las consultas AQL, permitiendo que un operario logístico gestione la red sin conocimientos técnicos previos de la base de datos.
 
-\subsection{Arquitectura del Dashboard (\texttt{app/main.py})}
-El frontend actúa como el orquestador de la experiencia de usuario. Hemos implementado una gestión de estado eficiente para asegurar que la conexión a la base de datos sea persistente y no se degrade con las interacciones del usuario:
+\subsection{Arquitectura y Gestión de Estado}
+A diferencia de las aplicaciones web tradicionales que requieren un manejo complejo del DOM, Streamlit permite definir la interfaz de forma declarativa en Python. Para optimizar el rendimiento y la experiencia de usuario, se han implementado las siguientes estrategias:
 
-\begin{lstlisting}[language=Python, caption={Gestión de recursos en main.py}]
-@st.cache_resource
-def inicializar_sistema():
-    gestor = GestorLogisticaDB()
-    gestor.conectar()
-    return gestor
-\end{lstlisting}
-
-\subsection{Componentes de Administración e Inventario}
-El dashboard se divide en módulos funcionales integrados en el archivo principal:
 \begin{itemize}
-    \item \textbf{Panel Lateral:} Gestiona la navegación y el estado de la conexión.
-    \item \textbf{Módulo de Red:} Permite la edición dinámica de la topología (añadir almacenes o cerrar rutas) llamando a los métodos de \texttt{crud.py}.
-    \item \textbf{Visualización Activa:} Se encarga de transformar los documentos JSON de ArangoDB en elementos visuales (mapas y tablas) para el seguimiento del stock.
+    \item \textbf{Persistencia de Conexión:} Se utiliza el decorador \texttt{@st.cache\_resource} para la función \texttt{inicializar\_sistema()}. Esto asegura que la instancia del \texttt{GestorLogisticaDB} se mantenga en memoria durante toda la sesión del usuario, evitando el coste computacional de reconectar a ArangoDB en cada interacción.
+    \item \textbf{Navegación Modular:} La aplicación se organiza mediante un menú lateral (\textit{Sidebar}) que divide la lógica en tres pilares: Inventario, Rutas y Administración.
 \end{itemize}
 
+\subsection{Módulos de Operación Logística}
+El dashboard implementa una lógica de pestañas (\texttt{st.tabs}) para organizar las funcionalidades sin saturar visualmente al usuario:
+
+\begin{itemize}
+    \item \textbf{Gestión de Inventario:} Este módulo permite realizar cruces de información dinámicos. Por ejemplo, al consultar un almacén, el sistema ejecuta una trayectoria en el grafo para listar todos los productos vinculados a través de la arista \texttt{Stock\_en}, presentando los resultados mediante tablas interactivas generadas con \textbf{Pandas}.
+    \item \textbf{Administración Dinámica:} Se han diseñado formularios específicos (\texttt{st.form}) para realizar operaciones CRUD. Un aspecto destacado es la validación en tiempo real: el sistema impide, por ejemplo, crear rutas donde el origen y el destino sean la misma ciudad antes de enviar la petición al backend.
+\end{itemize}
+
+\subsection{Visualización Avanzada con Vis.js}
+El componente más innovador del frontend es el \textbf{Mapa de Red Interactivo}. Dado que Streamlit no posee un componente nativo para grafos complejos, se ha desarrollado una integración personalizada con la librería de JavaScript \textbf{Vis.js}.
+
+El proceso de renderizado sigue este flujo técnico:
+\begin{enumerate}
+    \item \textbf{Extracción y Formateo:} La aplicación extrae los documentos de la colección \texttt{Almacenes} (nodos) y \texttt{Rutas} (aristas). Los IDs internos de ArangoDB (ej. \texttt{Almacenes/madrid}) se procesan para mostrar nombres legibles.
+    \item \textbf{Serialización JSON:} Los datos se convierten a estructuras JSON que Vis.js puede interpretar, asignando propiedades visuales como el color de los nodos o el tipo de flecha en las aristas.
+    \item \textbf{Inyección de Componente:} Mediante \texttt{components.html}, se inyecta un entorno de ejecución de JavaScript que inicializa una instancia de \texttt{vis.Network}.
+\end{enumerate}
+
+Esta integración permite al usuario interactuar físicamente con la red: los nodos responden a fuerzas de gravedad y tensión (\textit{physics engine}), y las rutas muestran etiquetas de distancia en kilómetros directamente sobre las conexiones, facilitando la comprensión de la topología logística de un solo vistazo.
+
+\begin{lstlisting}[language=Python, caption={Integración de Vis.js para visualización de grafos}]
+# Fragmento simplificado de la logica en main.py
+html_code = f"""
+<div id="mynetwork"></div>
+<script>
+  var nodes = new vis.DataSet({json.dumps(nodos_lista)});
+  var edges = new vis.DataSet({json.dumps(aristas_lista)});
+  var options = {{
+    physics: {{ stabilization: false, barnesHut: {{ springLength: 200 }} }},
+    edges: {{ smooth: {{ type: 'continuous' }} }}
+  }};
+  new vis.Network(container, data, options);
+</script>
+"""
+components.html(html_code, height=600)
+\end{lstlisting}
+
 \section{Infraestructura y Despliegue (\texttt{docker-compose.yml})}
-Para unificar el trabajo de ambos, hemos orquestado el despliegue mediante contenedores. El archivo \texttt{docker-compose.yml} garantiza que la base de datos y la aplicación convivan en una red aislada, compartiendo variables de entorno críticas:
+Para asegurar la portabilidad absoluta, se ha orquestado el despliegue mediante contenedores Docker]. 
+
+\begin{itemize}
+    \item \textbf{Dockerfile:} Basado en una imagen ligera de \texttt{python:3.10-slim} para minimizar el tamaño del contenedor, instalando solo las dependencias estrictamente necesarias como \texttt{python-arango} y \texttt{streamlit}.
+    \item \textbf{Orquestación de Servicios:} El archivo \texttt{docker-compose.yml} define una red aislada donde el servicio \texttt{db} (ArangoDB) y el servicio \texttt{app} (la aplicación) se comunican de forma transparente[cite: 200, 215].
+\end{itemize}
+
+Un detalle técnico relevante es la instrucción \texttt{command} en el servicio de la aplicación. Se utiliza una cadena de comandos en Bash para asegurar que, antes de lanzar la interfaz de Streamlit, se ejecute con éxito el script de configuración de datos, garantizando que el usuario siempre encuentre una base de datos funcional al acceder al sistema [cite: 214-215].
 
 \begin{lstlisting}[language=YAML, caption={Orquestación de servicios en docker-compose.yml}]
 services:
   db:
     image: arangodb:latest
+    environment:
+      - ARANGO_ROOT_PASSWORD=password_seguro
   app:
     build: .
+    depends_on:
+      - db
     environment:
+      - ARANGO_URL=http://db:8529
       - PYTHONPATH=/app
-    command: streamlit run app/main.py
+    command: bash -c "python data/setup_data.py && streamlit run app/main.py"
 \end{lstlisting}
-
