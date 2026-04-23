@@ -4,12 +4,12 @@
 Las pruebas del sistema se han enfocado en validar la exactitud algorítmica en el recorrido de grafos y en comprobar la capacidad dinámica del sistema frente a alteraciones inesperadas en la topología de la red.
 
 \section{Validación del Algoritmo de Rutas}
-Durante la evaluación empírica de las consultas AQL, detecté una anomalía semántica importante: el algoritmo \texttt{SHORTEST\_PATH} nativo tendía a utilizar los nodos de \texttt{Productos} como "atajos" entre ciudades, dado que estas aristas no contaban con atributo de distancia. Esto devolvía rutas carentes de sentido físico (ej. 350 km entre Madrid y Valencia saltando a través de un producto). 
+Durante la evaluación de las consultas AQL, detectamos una anomalía semántica importante: el algoritmo \texttt{SHORTEST\_PATH} nativo tendía a utilizar los nodos de \texttt{Productos} como atajos entre ciudades, dado que estas aristas no contaban con atributo de distancia. Esto devolvía rutas carentes de sentido físico (ej. 350 km entre Madrid y Valencia saltando a través de un producto). 
 
-Logré resolver este comportamiento restringiendo explícitamente el motor AQL para que evaluara de manera exclusiva la colección de aristas \texttt{Rutas}, obligando al algoritmo de Dijkstra interno a considerar únicamente carreteras reales. Tras aplicar esta restricción, las métricas fueron exactas.
+Logramos resolver este comportamiento restringiendo explícitamente el motor AQL para que evaluara de manera exclusiva la colección de aristas \texttt{Rutas}, obligando al algoritmo de Dijkstra interno a considerar únicamente carreteras reales. Tras aplicar esta restricción, las métricas fueron exactas.
 
 \section{Simulación de Contingencias}
-Para verificar la resiliencia del modelo, desarrollé un test de estrés eliminando deliberadamente la arista principal que conectaba Madrid y Barcelona (simulando un accidente o corte vial). Al volver a solicitar el recálculo de la ruta óptima, el sistema reaccionó con una adaptabilidad inmediata: redirigió el flujo logístico a través de nodos intermedios alternativos (vía Bilbao) y ajustó la distancia total de 620 km a 1010 km de manera totalmente transparente, sin requerir una sola modificación en la lógica de backend.
+Para verificar la resiliencia del modelo, desarrollamos un test de estrés eliminando deliberadamente la arista principal que conectaba Madrid y Barcelona (simulando un accidente o corte vial). Al volver a solicitar el recálculo de la ruta óptima, el sistema reaccionó con una adaptabilidad inmediata: redirigió el flujo logístico a través de nodos intermedios alternativos (vía Bilbao) y ajustó la distancia total de 620 km a 1010 km de manera totalmente transparente, sin requerir una sola modificación en la lógica de backend.
 
 \section{Conclusiones}
 Las pruebas confirman el éxito rotundo del modelo orientado a grafos. El sistema reacciona en tiempo real a los cambios estructurales, demostrando que ArangoDB es una solución técnica superior para la planificación logística.
