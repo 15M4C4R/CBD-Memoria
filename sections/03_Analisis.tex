@@ -19,7 +19,7 @@ Hemos definido las capacidades del sistema centrándonos en la utilidad para el 
 \begin{itemize}
     \item \textbf{Gestión de Red Interactiva:} El sistema debe permitir realizar operaciones CRUD sobre almacenes, productos y rutas. Estas acciones deben reflejarse inmediatamente tanto en la base de datos como en la representación visual de la red.
     \item \textbf{Cálculo de Rutas Críticas:} Implementar una lógica capaz de determinar el camino más corto entre dos puntos, garantizando que el algoritmo recorra exclusivamente las rutas de transporte válidas.
-    \item \textbf{Dashboard de Inventario:} Proporcionar una visión clara del stock vivo, permitiendo realizar ajustes de unidades y visualizar la distribución de productos a través de la red.
+    \item \textbf{Dashboard de Inventario:} Proporcionar una visión clara del stock, permitiendo realizar ajustes de unidades y visualizar la distribución de productos a través de la red.
     \item \textbf{Visualización Dinámica de la Red:} La interfaz debe generar un grafo interactivo que ayude al usuario a comprender la topología de la red logística de un solo vistazo.
     \item \textbf{Resiliencia ante Contingencias:} Capacidad de recalcular rutas de forma automática si una conexión queda inhabilitada, asegurando la continuidad de la cadena de suministro.
 \end{itemize}
@@ -27,7 +27,7 @@ Hemos definido las capacidades del sistema centrándonos en la utilidad para el 
 \section{Requisitos no funcionales}
 Para asegurar la calidad técnica y la facilidad de evaluación del proyecto, hemos establecido los siguientes criterios:
 \begin{itemize}
-    \item \textbf{Portabilidad:} El sistema debe ser agnóstico al entorno de ejecución, garantizando su funcionamiento inmediato mediante el uso de contenedores.
+    \item \textbf{Portabilidad:} El sistema debe ser independiente al entorno de ejecución, garantizando su funcionamiento inmediato mediante el uso de contenedores.
     \item \textbf{Rendimiento en Relaciones:} La arquitectura debe permitir realizar consultas de vecindad y caminos cortos sin la penalización de rendimiento propia de los sistemas relacionales convencionales.
     \item \textbf{Persistencia y Consistencia:} Se debe asegurar que las operaciones sobre el grafo mantengan la integridad de la red, evitando nodos o aristas huérfanas tras una eliminación.
 \end{itemize}
