@@ -27,9 +27,10 @@
     \input{sections/00_abstract}
     
     % Índice del documento y de figuras
+    \clearpage % Empezamos los índices en página nueva
     \begingroup
-        % Los enlaces son normalmente azules, pero en los índices se configuran a negro para que no aparezca todo azul
         \hypersetup{linkcolor=black}
+        \let\clearpage\relax % Evita saltos de página entre índices
         \tableofcontents
         \listoffigures
         \listoftables
@@ -50,6 +51,7 @@
     \input{sections/XX_Conclusiones}
 
     % Bibliografía
+    \nocite{*}
     \bibliographystyle{unsrtnat}
     \bibliography{bibliografia.bib}
         

@@ -13,7 +13,7 @@ Un aspecto clave es el uso de la inyección de dependencias: al llamar al métod
 
 \begin{lstlisting}[language=Python, caption={Inyección de dependencias en database.py}]
 def conectar(self):
-    """Abre la conexión a la base de datos especifica y enlaza las clases CRUD."""
+    """Abre la conexión a la base de datos específica y enlaza las clases CRUD."""
     self.db = self.client.db(self.db_name, username=self.username, password=self.password)
     
     # Inyeccion de dependencias (Repository Pattern)
@@ -24,7 +24,7 @@ def conectar(self):
 \end{lstlisting}
 
 \subsection{Inicialización Automatizada (\texttt{data/setup\_data.py})}
-Para inicializar la base de datos se manera segura, se ha desarrollado el script \texttt{setup\_data.py}. Dado que en entornos de red aislados (como Docker) el motor de base de datos puede tardar más en arrancar que la aplicación, este script implementa un mecanismo de resiliencia con reintentos automáticos. Una vez establecida la conexión, ejecuta los métodos \texttt{inicializar\_base\_datos()} y \texttt{cargar\_datos\_prueba()}, creando las colecciones de vértices y aristas y poblando el grafo \texttt{RedLogistica} con una infraestructura inicial de cinco ciudades y un catálogo maestro de productos.
+Para inicializar la base de datos de manera segura, se ha desarrollado el script \texttt{setup\_data.py}. Dado que en entornos de red aislados (como Docker) el motor de base de datos puede tardar más en arrancar que la aplicación, este script implementa un mecanismo de resiliencia con reintentos automáticos. Una vez establecida la conexión, ejecuta los métodos \texttt{inicializar\_base\_datos()} y \texttt{cargar\_datos\_prueba()}, creando las colecciones de vértices y aristas y poblando el grafo \texttt{RedLogistica} con una infraestructura inicial de cinco ciudades y un catálogo maestro de productos.
 
 \subsection{Lógica de Negocio y Grafos (\texttt{app/crud.py})}
 En este módulo se explotan las capacidades del lenguaje AQL (\textit{ArangoDB Query Language}) para resolver problemas complejos de redes que en bases de datos relacionales serían computacionalmente costosos.
@@ -93,14 +93,14 @@ components.html(html_code, height=600)
 \end{lstlisting}
 
 \section{Infraestructura y Despliegue (\texttt{docker-compose.yml})}
-Para asegurar la portabilidad absoluta, se ha orquestado el despliegue mediante contenedores Docker]. 
+Para asegurar la portabilidad absoluta, se ha orquestado el despliegue mediante contenedores Docker. 
 
 \begin{itemize}
     \item \textbf{Dockerfile:} Basado en una imagen ligera de \texttt{python:3.10-slim} para minimizar el tamaño del contenedor, instalando solo las dependencias estrictamente necesarias como \texttt{python-arango} y \texttt{streamlit}.
-    \item \textbf{Orquestación de Servicios:} El archivo \texttt{docker-compose.yml} define una red aislada donde el servicio \texttt{db} (ArangoDB) y el servicio \texttt{app} (la aplicación) se comunican de forma transparente[cite: 200, 215].
+    \item \textbf{Orquestación de Servicios:} El archivo \texttt{docker-compose.yml} define una red aislada donde el servicio \texttt{db} (ArangoDB) y el servicio \texttt{app} (la aplicación) se comunican de forma transparente.
 \end{itemize}
 
-Un detalle técnico relevante es la instrucción \texttt{command} en el servicio de la aplicación. Se utiliza una cadena de comandos en Bash para asegurar que, antes de lanzar la interfaz de Streamlit, se ejecute con éxito el script de configuración de datos, garantizando que el usuario siempre encuentre una base de datos funcional al acceder al sistema [cite: 214-215].
+Un detalle técnico relevante es la instrucción \texttt{command} en el servicio de la aplicación. Se utiliza una cadena de comandos en Bash para asegurar que, antes de lanzar la interfaz de Streamlit, se ejecute con éxito el script de configuración de datos, garantizando que el usuario siempre encuentre una base de datos funcional al acceder al sistema.
 
 \begin{lstlisting}[language=YAML, caption={Orquestación de servicios en docker-compose.yml}]
 services:
