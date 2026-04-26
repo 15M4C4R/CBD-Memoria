@@ -34,7 +34,7 @@ En este módulo se explotan las capacidades del lenguaje AQL (\textit{ArangoDB Q
     
     \item \textbf{Resolución de Caminos Mínimos:} La función \texttt{leer\_optima} encapsula el algoritmo de Dijkstra nativo de ArangoDB. Se ha configurado explícitamente el parámetro \texttt{weightAttribute: 'distancia\_km'} para asegurar que el cálculo se base en la longitud física de las carreteras y no simplemente en el número de saltos entre nodos.
     
-    \item \textbf{Operaciones Atómicas de Stock (UPSERT):} La gestión del inventario utiliza una sentencia \texttt{UPSERT} en AQL. Esto permite que si la relación entre un producto y un almacén no existe, se cree (INSERT), y si ya existe, se actualice la cantidad (UPDATE) de forma atómica. Además, se ha integrado lógica condicional para asegurar que el stock nunca sea inferior a cero.
+    \item \textbf{Operaciones Atómicas de Stock (UPSERT):} La gestión del inventario utiliza una sentencia \texttt{UPSERT} en \texttt{AQL} \cite{aql_manual}. Esto permite que si la relación entre un producto y un almacén no existe, se cree (INSERT), y si ya existe, se actualice la cantidad (UPDATE) de forma atómica. Además, se ha integrado lógica condicional para asegurar que el stock nunca sea inferior a cero.
 \end{itemize}
 
 \begin{lstlisting}[language=Python, caption={Firma de la función de cálculo de rutas en crud.py}]
@@ -51,7 +51,7 @@ La interfaz de usuario, centralizada en \texttt{app/main.py}, ha sido diseñada 
 A diferencia de las aplicaciones web tradicionales que requieren un manejo complejo del DOM, Streamlit permite definir la interfaz de forma declarativa en Python. Para optimizar el rendimiento y la experiencia de usuario, se han implementado las siguientes estrategias:
 
 \begin{itemize}
-    \item \textbf{Persistencia de Conexión:} Se utiliza el decorador \texttt{@st.cache\_resource} para la función \texttt{inicializar\_sistema()}. Esto asegura que la instancia del \texttt{GestorLogisticaDB} se mantenga en memoria durante toda la sesión del usuario, evitando el coste computacional de reconectar a ArangoDB en cada interacción.
+    \item \textbf{Persistencia de Conexión:} Se utiliza el decorador \texttt{@st.cache\_resource} para la función \texttt{inicializar\_sistema()} \cite{streamlit_cache}. Esto asegura que la instancia del \texttt{GestorLogisticaDB} se mantenga en memoria durante toda la sesión del usuario, evitando el coste computacional de reconectar a ArangoDB en cada interacción.
     \item \textbf{Navegación Modular:} La aplicación se organiza mediante un menú lateral (\textit{Sidebar}) que divide la lógica en tres pilares: Inventario, Rutas y Administración.
 \end{itemize}
 
@@ -64,13 +64,13 @@ El dashboard implementa una lógica de pestañas (\texttt{st.tabs}) para organiz
 \end{itemize}
 
 \subsection{Visualización Avanzada con \textit{Vis.js}}
-El componente más innovador del frontend es el Mapa de Red Interactivo. Dado que Streamlit no posee un componente nativo para grafos complejos, se ha desarrollado una integración personalizada con la librería de JavaScript \textit{Vis.js}.
+El componente más innovador del frontend es el Mapa de Red Interactivo. Dado que Streamlit no posee un componente nativo para grafos complejos, se ha desarrollado una integración personalizada con la librería de JavaScript \textit{Vis.js} \cite{visjs_network}.
 
 El proceso de renderizado sigue este flujo técnico:
 \begin{enumerate}
     \item \textbf{Extracción y Formateo:} La aplicación extrae los documentos de la colección \texttt{Almacenes} (nodos) y \texttt{Rutas} (aristas). Los IDs internos de ArangoDB (ej. \texttt{Almacenes/madrid}) se procesan para mostrar nombres legibles.
     \item \textbf{Serialización JSON:} Los datos se convierten a estructuras JSON que \textit{Vis.js} puede interpretar, asignando propiedades visuales como el color de los nodos o el tipo de flecha en las aristas.
-    \item \textbf{Inyección de Componente:} Mediante \texttt{components.html}, se inyecta un entorno de ejecución de JavaScript que inicializa una instancia de \texttt{vis.Network}.
+    \item \textbf{Inyección de Componente:} Mediante \texttt{components.html}, se inyecta un entorno de ejecución de JavaScript que inicializa una instancia de \texttt{vis.Network} \cite{streamlit_components}.
 \end{enumerate}
 
 Esta integración permite al usuario interactuar físicamente con la red: los nodos responden a fuerzas de gravedad y tensión (\textit{physics engine}), y las rutas muestran etiquetas de distancia en kilómetros directamente sobre las conexiones, facilitando la comprensión de la topología logística de un solo vistazo.
@@ -96,7 +96,7 @@ components.html(html_code, height=600)
 El valor diferencial de este proyecto reside en el uso de \texttt{AQL} para resolver problemas lógicos directamente en el motor de la base de datos. A continuación, se detallan las consultas más complejas implementadas en el sistema.
 
 \subsection{Cálculo de Rutas Óptimas (Algoritmo de Dijkstra)}
-Para encontrar el camino más corto entre dos centros logísticos, se utiliza la función nativa \texttt{SHORTEST\_PATH}. A diferencia de una base de datos relacional, donde esto requeriría múltiples operaciones de unión (\textit{JOINs}) o recursividad compleja, en \texttt{ArangoDB} se resuelve de forma declarativa.
+Para encontrar el camino más corto entre dos centros logísticos, se utiliza la función nativa \texttt{SHORTEST\_PATH} \cite{aql_manual}. A diferencia de una base de datos relacional, donde esto requeriría múltiples operaciones de unión (\textit{JOINs}) o recursividad compleja, en \texttt{ArangoDB} se resuelve de forma declarativa.
 
 \begin{lstlisting}[style=listingstyle, caption={Consulta AQL para el camino más corto}]
 LET ruta = (

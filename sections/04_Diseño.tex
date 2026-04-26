@@ -16,12 +16,12 @@ Hemos diseñado un grafo denominado \texttt{RedLogistica} que unifica la infraes
 \begin{itemize}
     \item \textbf{Rutas:} Definen la conectividad vial entre almacenes. Son aristas dirigidas o bidireccionales que portan el atributo \texttt{distancia\_km}, crítico para los cálculos de optimización.
     \item \textbf{Stock\_en:} Representan la presencia de un producto en un almacén. Almacenan el atributo \texttt{cantidad}, permitiendo una relación dinámica de muchos a muchos entre productos y ubicaciones.
-\end{itemize}
+    \end{itemize}
 
-\section{Diagrama del Modelo de Datos}
-Para facilitar la comprensión de la topología de la red, hemos elaborado el siguiente diagrama mediante el paquete \textit{TikZ}, representando la jerarquía y las conexiones del grafo:
+    \section{Diagrama del Modelo de Datos}
+    Para facilitar la comprensión de la topología de la red, hemos elaborado el siguiente diagrama mediante el paquete \textit{TikZ}, representando la jerarquía y las conexiones del grafo:
 
-\begin{figure}[htp]
+    \begin{figure}[htp]
     \centering
     \begin{tikzpicture}[node distance=4cm, auto, thick, >=stealth]
         % Estilos
@@ -42,7 +42,7 @@ Para facilitar la comprensión de la topología de la red, hemos elaborado el si
     \end{tikzpicture}
     \caption{Representación lógica del grafo multimodelo \texttt{RedLogistica}.}
     \label{fig:diagrama_grafo}
-\end{figure}
+    \end{figure}
 
-\section{Estrategia de Integridad Referencial}
-Dada la naturaleza de las bases de datos NoSQL, hemos tomado la decisión de diseño de gestionar la integridad referencial desde la lógica de la aplicación. Para evitar ``aristas huérfanas'', implementamos funciones en AQL que ejecutan borrados en cascada: al eliminar un nodo de \texttt{Almacenes}, el sistema identifica y elimina automáticamente todas las \texttt{Rutas} y registros de \texttt{Stock\_en} asociados.
+    \section{Estrategia de Integridad Referencial}
+    Dada la naturaleza de las bases de datos NoSQL, hemos tomado la decisión de diseño de gestionar la integridad referencial desde la lógica de la aplicación. Para evitar ``aristas huérfanas'', implementamos funciones en AQL que ejecutan borrados en cascada: al eliminar un nodo de \texttt{Almacenes}, el sistema identifica y elimina automáticamente todas las \texttt{Rutas} y registros de \texttt{Stock\_en} asociados.

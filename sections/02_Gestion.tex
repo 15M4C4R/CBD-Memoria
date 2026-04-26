@@ -15,7 +15,7 @@ En el desarrollo de aplicaciones complejas, habitualmente es necesario integrar 
 \end{itemize}
 
 \section{Modelado de Grafos frente al Modelo Relacional}
-La decisión de no utilizar una base de datos SQL tradicional se basa en la eficiencia en el recorrido de redes. En un modelo relacional, encontrar una ruta entre dos almacenes implicaría realizar múltiples operaciones de unión (\textit{JOINs}) o recursividad compleja (CTEs), cuyo rendimiento decae exponencialmente con la profundidad de la red.
+La decisión de no utilizar una base de datos SQL tradicional se basa en la eficiencia en el recorrido de redes. En un modelo relacional, encontrar una ruta entre dos almacenes implicaría realizar múltiples operaciones de unión (\textit{JOINs}) o recursividad compleja (CTEs), cuyo rendimiento decae exponencialmente con la profundidad de la red \cite{borrego2021}.
 
 En nuestro modelo de grafos, las relaciones son registros físicos que contienen punteros a los documentos que conectan. Esto permite que el trazado de rutas sea una operación directa e inmediata, independientemente del tamaño total del conjunto de datos.
 
