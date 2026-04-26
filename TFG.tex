@@ -30,15 +30,14 @@
     \clearpage % Empezamos los índices en página nueva
     \begingroup
         \hypersetup{linkcolor=black}
-        \let\clearpage\relax % Evita saltos de página entre índices
         \tableofcontents
         \listoffigures
         \listoftables
         \lstlistoflistings
     \endgroup
     
-    % Cambia el estilo de números de página de romanos a normal
-    \clearpage\pagenumbering{arabic}
+    % Cambia el estilo de números de página de romanos a normal (Eliminado para mantener numeración continua)
+    \clearpage
     
     % Capítulos del trabajo
     %\input{sections/ejemplos_borrame}

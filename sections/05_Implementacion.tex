@@ -11,7 +11,7 @@ La persistencia se centraliza en la clase \texttt{GestorLogisticaDB}, que actúa
 
 Un aspecto clave es el uso de la inyección de dependencias: al llamar al método \texttt{conectar()}, la instancia activa de la base de datos se vincula a cada uno de los repositorios especializados (\texttt{almacenes}, \texttt{productos}, \texttt{rutas} y \texttt{stock}). 
 
-\begin{lstlisting}[language=Python, caption={Inyección de dependencias en database.py}]
+\begin{lstlisting}[style=listingstyle, language=Python, caption={Inyección de dependencias en database.py}]
 def conectar(self):
     """Abre la conexión a la base de datos específica y enlaza las clases CRUD."""
     self.db = self.client.db(self.db_name, username=self.username, password=self.password)

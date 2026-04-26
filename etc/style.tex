@@ -9,7 +9,6 @@
 
 % Tamaños y estilos de elementos en la TOC
 \DeclareTOCStyleEntry[
-    linefill=\bfseries\TOCLineLeaderFill,
     beforeskip=12pt,
     entrynumberformat=\chapterprefixintoc,
     entryformat=\chaptertocformat,
@@ -18,7 +17,6 @@
 ]{tocline}{chapter}
 
 \DeclareTOCStyleEntry[
-    % linefill=\bfseries\TOCLineLeaderFill,
     beforeskip=30pt,
     entrynumberformat=\chapterprefixintoc,
     entryformat=\parttocformat,
@@ -38,7 +36,7 @@
 
 % Formato del código fuente con lstlisting
 \lstset{
-  extendedchars=true,
+  extendedchars=false,
   basicstyle=\ttfamily\small,
   breaklines=true,
   columns=fullflexible,
@@ -138,7 +136,10 @@
 {6}{{{\color{editorOcher}6}}}1
 {7}{{{\color{editorOcher}7}}}1
 {8}{{{\color{editorOcher}8}}}1
-{9}{{{\color{editorOcher}9}}}1,
+{9}{{{\color{editorOcher}9}}}1
+{á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+{ñ}{{\~n}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1
+{Ú}{{\'U}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1 {¡}{{!`}}1,
 }
 
 \lstset{style=listingstyle}

@@ -3,7 +3,7 @@
 \section{Contexto y Motivación}
 En el marco de la asignatura de Complementos de Bases de Datos, este proyecto nace con el objetivo de abordar uno de los retos que se presentan en la ingeniería del software: la gestión eficiente de redes logísticas. La distribución de mercancías no solo requiere el almacenamiento de datos estáticos, sino el procesamiento ágil de relaciones complejas entre almacenes, rutas y existencias.
 
-Tradicionalmente, este problema se ha abordado mediante modelos relacionales. Sin embargo, hemos identificado que el uso de grafos ofrece una ventaja competitiva superior para modelar la realidad física de una red de transporte. Al tratar los almacenes como nodos y las carreteras como aristas, nuestro sistema permite una adaptabilidad inmediata ante cambios en el entorno, facilitando cálculos que en sistemas tabulares resultarían computacionalmente costosos.
+Tradicionalmente, este problema se ha abordado mediante modelos relacionales. Sin embargo, hemos identificado que el uso de grafos ofrece una ventaja competitiva superior para modelar la realidad física de una red de transporte. Al tratar los almacenes como nodos y las carreteras como aristas, nuestro sistema permite una adaptabilidad inmediata ante cambios en el entorno, optimizando la ejecución de consultas de rutas y stock. Además, los grafos permiten una representación eficiente de relaciones complejas, lo que, en sistemas relacionales, generarían una carga computacional excesiva debido a la recursividad.
 
 \section{Definición del Problema}
 El sistema diseñado debe dar solución a una red logística integral compuesta por almacenes distribuidos geográficamente y un catálogo maestro de productos. El desafío planteado no se limita únicamente a la persistencia de la información, sino que abarca tres pilares fundamentales:
@@ -14,12 +14,12 @@ El sistema diseñado debe dar solución a una red logística integral compuesta 
 \end{itemize}
 
 \section{Objetivos del Proyecto}
-El propósito de este trabajo es el diseño, implementación y despliegue de una plataforma de gestión logística inteligente. Para alcanzar esta meta, nos hemos fijado los siguientes objetivos estratégicos:
+El propósito de este trabajo es el diseño e implementación de una plataforma de gestión logística inteligente. Para alcanzar esta meta, nos hemos fijado los siguientes objetivos estratégicos:
 \begin{enumerate}
     \item \textbf{Modelado de Datos Avanzado:} Diseñar un grafo multimodelo en ArangoDB que represente fielmente la infraestructura logística.
     \item \textbf{Arquitectura Robusta:} Implementar un backend modular basado en el Patrón Repositorio que asegure la escalabilidad y mantenibilidad del código.
-    \item \textbf{Visualización Dinámica:} Desarrollar un dashboard interactivo utilizando Streamlit y bibliotecas de visualización de redes (Vis.js) para ofrecer una experiencia de usuario clara y profesional.
-    \item \textbf{Despliegue Unificado:} Orquestar todo el ecosistema mediante contenedores Docker para garantizar la portabilidad absoluta del sistema.
+    \item \textbf{Visualización Dinámica:} Desarrollar un dashboard interactivo utilizando Streamlit y bibliotecas de visualización de redes (Vis.js) para ofrecer una experiencia de usuario clara.
+    \item \textbf{Despliegue Unificado:} Orquestar todo el ecosistema mediante contenedores Docker, que abstrae la complejidad de la instalación, facilitando la puesta en marcha del proyecto en cualquier entorno de manera transparente y sencilla.
 \end{enumerate}
 
 \section{Metodología y Desafíos Técnicos}

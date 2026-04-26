@@ -7,7 +7,7 @@ En este capítulo detallamos los requisitos fundamentales que el sistema logíst
 Para modelar fielmente la red logística, el sistema debe ser capaz de persistir y relacionar entidades que poseen atributos tanto técnicos como descriptivos para su visualización:
 
 \begin{itemize}
-    \item \textbf{Almacenes (Nodos):} Además de su identificación y capacidad, deben incluir metadatos de localización (como ciudad o coordenadas) que permitan su representación en el mapa interactivo.
+    \item \textbf{Almacenes (Nodos):} Además de su identificación y capacidad, deben incluir atributos de localización (como el nombre de la ciudad) que sirvan como etiquetas dentro de la representación visual del grafo y permitan al usuario identificar cada centro logístico en el dashboard interactivo.
     \item \textbf{Productos (Nodos):} Deben categorizarse mediante identificadores únicos (SKU), nombres descriptivos y categorías para facilitar su filtrado en el inventario.
     \item \textbf{Conexiones Viales (Aristas):} Deben definir la topología de la red, vinculando almacenes mediante el atributo de distancia, esencial para los algoritmos de optimización.
     \item \textbf{Existencias (Aristas):} Representan la relación dinámica entre productos y almacenes, manteniendo un conteo preciso de unidades disponibles en cada punto de la red.
