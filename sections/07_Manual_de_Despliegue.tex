@@ -4,7 +4,7 @@
 Para garantizar la portabilidad absoluta y evitar conflictos de dependencias locales, el sistema ha sido completamente contenedorizado. Por tanto, el único requisito previo para la ejecución del proyecto es contar con las siguientes herramientas instaladas en la máquina host:
 \begin{itemize}
     \item \textbf{Docker:} Motor de contenedores.
-    \item \textbf{Docker Compose:} Herramienta para la orquestación de servicios multicontenedor.
+    \item \textbf{Docker Compose (V2):} Herramienta de orquestación (se recomienda usar la versión integrada en Docker Desktop o la V2 para evitar errores de compatibilidad).
 \end{itemize}
 
 \section{Despliegue del Sistema}
@@ -15,7 +15,7 @@ Gracias a la orquestación configurada, el levantamiento de toda la infraestruct
 \end{enumerate}
 
 \begin{lstlisting}[language=bash, caption=Comando de despliegue]
-docker-compose up --build
+docker compose up --build
 \end{lstlisting}
 
 Al ejecutar el comando anterior, Docker levantará dos servicios simultáneamente: la base de datos (\texttt{db}) y la aplicación (\texttt{app}). Durante este proceso, el servicio de la aplicación ejecutará internamente el script \texttt{data/setup\_data.py} antes de iniciar la interfaz. Este script esperará a que el motor de ArangoDB esté completamente listo y, a continuación, inicializará las colecciones, el grafo lógico y poblará la base de datos con los datos de prueba.
