@@ -13,7 +13,7 @@ Un aspecto clave es el uso de la inyección de dependencias: al llamar al métod
 
 \begin{lstlisting}[style=listingstyle, language=Python, caption={Inyección de dependencias en database.py}]
 def conectar(self):
-    """Abre la conexión a la base de datos específica y enlaza las clases CRUD."""
+    """Establece la conexion a la base de datos y enlaza las clases CRUD."""
     self.db = self.client.db(self.db_name, username=self.username, password=self.password)
     
     # Inyeccion de dependencias (Repository Pattern)
@@ -45,7 +45,7 @@ def leer_optima(self, origen, destino):
 \end{lstlisting}
 
 \section{Desarrollo del Frontend: Interfaz y Visualización}
-La interfaz de usuario, centralizada en \texttt{app/main.py}, ha sido diseñada bajo un paradigma de desarrollo reactivo utilizando el framework \textbf{Streamlit}. El objetivo principal es abstraer la complejidad de las consultas AQL, permitiendo que un operario logístico gestione la red sin conocimientos técnicos previos de la base de datos.
+La interfaz de usuario, centralizada en \texttt{app/main.py}, ha sido diseñada bajo un paradigma de desarrollo reactivo utilizando el framework \textit{Streamlit}. El objetivo principal es abstraer la complejidad de las consultas \texttt{AQL}, permitiendo que un operario logístico gestione la red sin conocimientos técnicos previos de la base de datos.
 
 \subsection{Arquitectura y Gestión de Estado}
 A diferencia de las aplicaciones web tradicionales que requieren un manejo complejo del DOM, Streamlit permite definir la interfaz de forma declarativa en Python. Para optimizar el rendimiento y la experiencia de usuario, se han implementado las siguientes estrategias:
@@ -59,17 +59,17 @@ A diferencia de las aplicaciones web tradicionales que requieren un manejo compl
 El dashboard implementa una lógica de pestañas (\texttt{st.tabs}) para organizar las funcionalidades sin saturar visualmente al usuario:
 
 \begin{itemize}
-    \item \textbf{Gestión de Inventario:} Este módulo permite realizar cruces de información dinámicos. Por ejemplo, al consultar un almacén, el sistema ejecuta una trayectoria en el grafo para listar todos los productos vinculados a través de la arista \texttt{Stock\_en}, presentando los resultados mediante tablas interactivas generadas con \textbf{Pandas}.
+    \item \textbf{Gestión de Inventario:} Este módulo permite realizar cruces de información dinámicos. Por ejemplo, al consultar un almacén, el sistema ejecuta una trayectoria en el grafo para listar todos los productos vinculados a través de la arista \texttt{Stock\_en}, presentando los resultados mediante tablas interactivas generadas con \textit{Pandas}.
     \item \textbf{Administración Dinámica:} Se han diseñado formularios específicos (\texttt{st.form}) para realizar operaciones CRUD. Un aspecto destacado es la validación en tiempo real: el sistema impide, por ejemplo, crear rutas donde el origen y el destino sean la misma ciudad antes de enviar la petición al backend.
 \end{itemize}
 
-\subsection{Visualización Avanzada con Vis.js}
-El componente más innovador del frontend es el \textbf{Mapa de Red Interactivo}. Dado que Streamlit no posee un componente nativo para grafos complejos, se ha desarrollado una integración personalizada con la librería de JavaScript \textbf{Vis.js}.
+\subsection{Visualización Avanzada con \textit{Vis.js}}
+El componente más innovador del frontend es el Mapa de Red Interactivo. Dado que Streamlit no posee un componente nativo para grafos complejos, se ha desarrollado una integración personalizada con la librería de JavaScript \textit{Vis.js}.
 
 El proceso de renderizado sigue este flujo técnico:
 \begin{enumerate}
     \item \textbf{Extracción y Formateo:} La aplicación extrae los documentos de la colección \texttt{Almacenes} (nodos) y \texttt{Rutas} (aristas). Los IDs internos de ArangoDB (ej. \texttt{Almacenes/madrid}) se procesan para mostrar nombres legibles.
-    \item \textbf{Serialización JSON:} Los datos se convierten a estructuras JSON que Vis.js puede interpretar, asignando propiedades visuales como el color de los nodos o el tipo de flecha en las aristas.
+    \item \textbf{Serialización JSON:} Los datos se convierten a estructuras JSON que \textit{Vis.js} puede interpretar, asignando propiedades visuales como el color de los nodos o el tipo de flecha en las aristas.
     \item \textbf{Inyección de Componente:} Mediante \texttt{components.html}, se inyecta un entorno de ejecución de JavaScript que inicializa una instancia de \texttt{vis.Network}.
 \end{enumerate}
 
@@ -90,6 +90,61 @@ html_code = f"""
 </script>
 """
 components.html(html_code, height=600)
+\end{lstlisting}
+
+\section{Lógica de Consultas en \texttt{AQL} (ArangoDB Query Language)}
+El valor diferencial de este proyecto reside en el uso de \texttt{AQL} para resolver problemas lógicos directamente en el motor de la base de datos. A continuación, se detallan las consultas más complejas implementadas en el sistema.
+
+\subsection{Cálculo de Rutas Óptimas (Algoritmo de Dijkstra)}
+Para encontrar el camino más corto entre dos centros logísticos, se utiliza la función nativa \texttt{SHORTEST\_PATH}. A diferencia de una base de datos relacional, donde esto requeriría múltiples operaciones de unión (\textit{JOINs}) o recursividad compleja, en \texttt{ArangoDB} se resuelve de forma declarativa.
+
+\begin{lstlisting}[style=listingstyle, caption={Consulta AQL para el camino más corto}]
+LET ruta = (
+    FOR v, e IN ANY SHORTEST_PATH @origen TO @destino Rutas 
+    OPTIONS { weightAttribute: 'distancia_km' }
+    RETURN { 
+        ciudad: v.ciudad, 
+        distancia_tramo: e ? e.distancia_km : 0 
+    }
+)
+FILTER LENGTH(ruta) > 0
+RETURN { 
+    ciudades_ruta: ruta[*].ciudad, 
+    distancia_total_km: SUM(ruta[*].distancia_tramo), 
+    detalle_tramos: ruta 
+}
+\end{lstlisting}
+
+\subsection{Gestión Atómica de Stock (\texttt{UPSERT})}
+La actualización de inventario debe ser robusta ante la concurrencia. Se ha implementado una lógica \texttt{UPSERT} que decide si insertar una nueva relación de stock o actualizar la existente, asegurando además que el inventario nunca sea negativo.
+
+\begin{lstlisting}[style=listingstyle, caption={Lógica de inventario atómico}]
+UPSERT { _from: @producto, _to: @almacen }
+INSERT { 
+    _from: @producto, 
+    _to: @almacen, 
+    cantidad: @variacion > 0 ? @variacion : 0 
+}
+UPDATE { 
+    cantidad: (OLD.cantidad + @variacion) < 0 ? 0 : (OLD.cantidad + @variacion) 
+} IN Stock_en
+\end{lstlisting}
+
+\subsection{Integridad Referencial Manual (Borrado en Cascada)}
+Dado que \texttt{ArangoDB} no impone integridad referencial rígida en las aristas por defecto, se ha diseñado una consulta que limpia todas las dependencias antes de eliminar un nodo de tipo almacén.
+
+\begin{lstlisting}[style=listingstyle, caption={Borrado en cascada de un almacen}]
+LET aristas_rutas = (
+    FOR r IN Rutas 
+    FILTER r._from == @id_almacen OR r._to == @id_almacen 
+    REMOVE r IN Rutas
+)
+LET aristas_stock = (
+    FOR s IN Stock_en 
+    FILTER s._to == @id_almacen 
+    REMOVE s IN Stock_en
+)
+REMOVE @key_almacen IN Almacenes
 \end{lstlisting}
 
 \section{Infraestructura y Despliegue (\texttt{docker-compose.yml})}

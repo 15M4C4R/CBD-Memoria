@@ -45,4 +45,4 @@ Para facilitar la comprensión de la topología de la red, hemos elaborado el si
 \end{figure}
 
 \section{Estrategia de Integridad Referencial}
-Dada la naturaleza de las bases de datos NoSQL, hemos tomado la decisión de diseño de gestionar la integridad referencial desde la lógica de la aplicación. Para evitar ``aristas huérfanas", implementamos funciones en AQL que ejecutan borrados en cascada: al eliminar un nodo de \texttt{Almacenes}, el sistema identifica y elimina automáticamente todas las \texttt{Rutas} y registros de \texttt{Stock\_en} asociados.
+Dada la naturaleza de las bases de datos NoSQL, hemos tomado la decisión de diseño de gestionar la integridad referencial desde la lógica de la aplicación. Para evitar ``aristas huérfanas'', implementamos funciones en AQL que ejecutan borrados en cascada: al eliminar un nodo de \texttt{Almacenes}, el sistema identifica y elimina automáticamente todas las \texttt{Rutas} y registros de \texttt{Stock\_en} asociados.
