@@ -1,0 +1,22 @@
+\chapter{Manual de Despliegue}\label{cap:manual_de_despliegue}
+
+\section{Prerrequisitos del Sistema}
+Para garantizar la portabilidad absoluta y evitar conflictos de dependencias locales, el sistema ha sido completamente contenedorizado. Por tanto, el único requisito previo para la ejecución del proyecto es contar con las siguientes herramientas instaladas en la máquina host:
+\begin{itemize}
+    \item \textbf{Docker:} Motor de contenedores.
+    \item \textbf{Docker Compose:} Herramienta para la orquestación de servicios multicontenedor.
+\end{itemize}
+
+\section{Despliegue del Sistema}
+Gracias a la orquestación configurada, el levantamiento de toda la infraestructura requiere un único comando.
+\begin{enumerate}
+    \item Abra una terminal y navegue hasta el directorio raíz del proyecto (donde se ubica el archivo \texttt{docker-compose.yml}).
+    \item Ejecute el siguiente comando para construir las imágenes y levantar los servicios:
+\end{enumerate}
+
+\begin{lstlisting}[language=bash, caption=Comando de despliegue]
+docker-compose up --build
+\end{lstlisting}
+
+Al ejecutar el comando anterior, Docker levantará dos servicios simultáneamente: la base de datos (\texttt{db}) y la aplicación (\texttt{app}). Durante este proceso, el servicio de la aplicación ejecutará internamente el script \texttt{data/setup\_data.py} antes de iniciar la interfaz. Este script esperará a que el motor de ArangoDB esté completamente listo y, a continuación, inicializará las colecciones, el grafo lógico y poblará la base de datos con los datos de prueba.
+La página se encontrará disponible en la URL: \texttt{http://localhost:8501}

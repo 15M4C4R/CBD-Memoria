@@ -1,0 +1,27 @@
+\chapter{Manual de Usuario}
+
+\section{Acceso e Interfaz Principal}
+La plataforma cuenta con una interfaz web reactiva diseñada para abstraer la complejidad de las consultas a la base de datos de grafos. Al acceder al sistema (por defecto en \texttt{http://localhost:8501}), el operario logístico encontrará un diseño limpio cuyo elemento principal de navegación es un \textbf{menú lateral}. Este menú permite alternar entre las tres áreas funcionales del sistema: \textbf{Inventario}, \textbf{Rutas} y \textbf{Administración}.
+
+\section{Módulo de Inventario}
+Este módulo está dedicado a la supervisión y control del stock. Se divide en tres pestañas operativas:
+\begin{itemize}
+    \item \textbf{Ver por Almacén:} Permite al usuario seleccionar un almacén (Ciudad) desplegando una tabla dinámica con todos los productos vinculados a través de la arista \texttt{Stock\_en}.
+    \item \textbf{Ver por Producto:} Facilita la búsqueda inversa. Al seleccionar el identificador de un producto, el sistema rastrea y muestra una lista de todos los almacenes de la red que disponen de existencias.
+    \item \textbf{Modificar Stock:} Interfaz transaccional para registrar entradas o salidas de mercancía mediante sentencias \texttt{UPSERT} en AQL. El usuario introduce la variación de unidades (positivo para añadir, negativo para retirar). El sistema garantiza que el stock nunca sea inferior a cero.
+\end{itemize}
+
+\section{Módulo de Rutas}
+Diseñado para la visualización y optimización del transporte, este módulo consta de dos herramientas clave:
+\begin{itemize}
+    \item \textbf{Cálculo de Rutas Óptimas:} Herramienta de toma de decisiones que implementa el algoritmo de Dijkstra nativo de ArangoDB. Al calcular la ruta entre un origen y un destino, el sistema considera el peso físico de las carreteras (\texttt{distancia\_km}) y devuelve el detalle exacto de los tramos.
+    \item \textbf{Mapa de Red Interactivo:} Un lienzo visual interactivo desarrollado con la librería \texttt{Vis.js}. El usuario puede interactuar físicamente con la red: los nodos responden a fuerzas de gravedad y las rutas muestran etiquetas de distancia directamente sobre las conexiones.
+\end{itemize}
+
+\section{Módulo de Administración}
+Sección reservada para alterar la topología de la cadena de suministro mediante formularios validados:
+\begin{itemize}
+    \item \textbf{Almacenes:} Permite expandir la red registrando nuevos centros logísticos con su capacidad. Para mantener la integridad, la eliminación de un almacén ejecuta un borrado en cascada que retira automáticamente todas las rutas y registros de stock asociados.
+    \item \textbf{Productos:} Formulario para gestionar el catálogo maestro, permitiendo crear artículos definiendo su identificador (SKU), nombre y categoría.
+    \item \textbf{Rutas:} Permite construir nuevas conexiones viales o actualizar las existentes definiendo la distancia entre ciudades. El sistema incluye validaciones en tiempo real para impedir errores lógicos, como crear rutas con el mismo origen y destino.
+\end{itemize}
